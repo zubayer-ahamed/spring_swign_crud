@@ -5,17 +5,37 @@
  */
 package com.coderslab.test;
 
+import com.coderslab.controller.EmployeeController;
+import com.coderslab.model.Employee;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
 /**
  *
  * @author cyclingbd007
  */
 public class Test extends javax.swing.JFrame {
 
-    /**
-     * Creates new form Test
-     */
+    private int id;
+    private String name;
+    private double salary;
+    private DefaultTableModel model;
+    private ApplicationContext context;
+    private EmployeeController employeeController;
+    private Employee employee;
+    
     public Test() {
         initComponents();
+        context = new ClassPathXmlApplicationContext("com/coderslab/test/spring.xml");
+        employeeController = (EmployeeController) context.getBean("employeeController");
+        employee = (Employee) context.getBean("employee");
+        model = new DefaultTableModel();
+        model.addColumn("ID");
+        model.addColumn("Name");
+        model.addColumn("Salary");
+        tblDisplay.setModel(model);
     }
 
     /**
@@ -61,7 +81,14 @@ public class Test extends javax.swing.JFrame {
 
         jLabel4.setText("Employee Salary: ");
 
+        txtId.setEnabled(false);
+
         btnSave.setText("Save");
+        btnSave.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSaveActionPerformed(evt);
+            }
+        });
 
         tblDisplay.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -167,6 +194,19 @@ public class Test extends javax.swing.JFrame {
         pack();
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
+
+    private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
+        
+        name = txtName.getText().toString();
+        salary = Double.parseDouble(txtSalary.getText().toString());
+        employee = (Employee) context.getBean("employee");
+        employee.setName(name);
+        employee.setSalary(salary);
+        boolean status = employeeController.saveEmployee(employee);
+        if(status){
+            JOptionPane.showMessageDialog(this, "Employee Info Saved Successfully");
+        }
+    }//GEN-LAST:event_btnSaveActionPerformed
 
     /**
      * @param args the command line arguments
