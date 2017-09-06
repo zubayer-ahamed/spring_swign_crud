@@ -7,6 +7,7 @@ package com.coderslab.test;
 
 import com.coderslab.controller.EmployeeController;
 import com.coderslab.model.Employee;
+import java.util.List;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import org.springframework.context.ApplicationContext;
@@ -25,17 +26,26 @@ public class Test extends javax.swing.JFrame {
     private ApplicationContext context;
     private EmployeeController employeeController;
     private Employee employee;
-    
+
     public Test() {
         initComponents();
         context = new ClassPathXmlApplicationContext("com/coderslab/test/spring.xml");
         employeeController = (EmployeeController) context.getBean("employeeController");
         employee = (Employee) context.getBean("employee");
+        initializeTable();
+    }
+
+    public void initializeTable() {
         model = new DefaultTableModel();
         model.addColumn("ID");
         model.addColumn("Name");
         model.addColumn("Salary");
         tblDisplay.setModel(model);
+
+        List<Employee> list = employeeController.getAllEmployee();
+        for (Employee employee : list) {
+            model.addRow(new Object[]{employee.getId(), employee.getName(), employee.getSalary()});
+        }
     }
 
     /**
@@ -101,21 +111,48 @@ public class Test extends javax.swing.JFrame {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
+        tblDisplay.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tblDisplayMouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(tblDisplay);
 
         jPanel2.setBackground(new java.awt.Color(255, 255, 255));
         jPanel2.setLayout(new java.awt.GridLayout());
 
         btlClear.setText("Clear");
+        btlClear.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btlClearActionPerformed(evt);
+            }
+        });
         jPanel2.add(btlClear);
 
         btnUpdate.setText("Update");
+        btnUpdate.setEnabled(false);
+        btnUpdate.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnUpdateActionPerformed(evt);
+            }
+        });
         jPanel2.add(btnUpdate);
 
         btnDelete.setText("Delete");
+        btnDelete.setEnabled(false);
+        btnDelete.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDeleteActionPerformed(evt);
+            }
+        });
         jPanel2.add(btnDelete);
 
         btnShow.setText("Show");
+        btnShow.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnShowActionPerformed(evt);
+            }
+        });
         jPanel2.add(btnShow);
 
         jLabel5.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
@@ -196,17 +233,80 @@ public class Test extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
-        
+
         name = txtName.getText().toString();
         salary = Double.parseDouble(txtSalary.getText().toString());
         employee = (Employee) context.getBean("employee");
         employee.setName(name);
         employee.setSalary(salary);
         boolean status = employeeController.saveEmployee(employee);
-        if(status){
-            JOptionPane.showMessageDialog(this, "Employee Info Saved Successfully");
+        if (status) {
+            clearFields();
+            JOptionPane.showMessageDialog(rootPane, "Employee Info Saved Successfully");
         }
     }//GEN-LAST:event_btnSaveActionPerformed
+
+    private void btnShowActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnShowActionPerformed
+        initializeTable();
+    }//GEN-LAST:event_btnShowActionPerformed
+
+    private void btlClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btlClearActionPerformed
+        clearFields();
+        initializeTable();
+        btnSave.setEnabled(true);
+        btnUpdate.setEnabled(false);
+        btnDelete.setEnabled(false);
+    }//GEN-LAST:event_btlClearActionPerformed
+
+    private void tblDisplayMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblDisplayMouseClicked
+        int i = tblDisplay.getSelectedRow();
+
+        txtId.setText(model.getValueAt(i, 0).toString());
+        txtName.setText(model.getValueAt(i, 1).toString());
+        txtSalary.setText(model.getValueAt(i, 2).toString());
+
+        btnUpdate.setEnabled(true);
+        btnDelete.setEnabled(true);
+        btnSave.setEnabled(false);
+
+    }//GEN-LAST:event_tblDisplayMouseClicked
+
+    private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
+        id = Integer.parseInt(txtId.getText().toString());
+        name = txtName.getText().toString();
+        salary = Double.parseDouble(txtSalary.getText().toString());
+        employee = (Employee) context.getBean("employee");
+        employee.setId(id);
+        employee.setName(name);
+        employee.setSalary(salary);
+        boolean status = employeeController.updateEmployee(employee);
+        if (status) {
+            JOptionPane.showMessageDialog(rootPane, "Employee Info Update Successfully");
+            clearFields();
+        }
+    }//GEN-LAST:event_btnUpdateActionPerformed
+
+    private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
+        id = Integer.parseInt(txtId.getText().toString());
+        name = txtName.getText().toString();
+        salary = Double.parseDouble(txtSalary.getText().toString());
+        employee = (Employee) context.getBean("employee");
+        employee.setId(id);
+        employee.setName(name);
+        employee.setSalary(salary);
+        boolean status = employeeController.deleteEmployee(employee);
+        if (status) {
+            clearFields();
+            JOptionPane.showMessageDialog(rootPane, "Employee Info Deleted Successfully");
+        }
+    }//GEN-LAST:event_btnDeleteActionPerformed
+
+    public void clearFields() {
+        txtName.setText("");
+        txtSalary.setText("");
+        txtId.setText("");
+        initializeTable();
+    }
 
     /**
      * @param args the command line arguments
